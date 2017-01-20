@@ -1,0 +1,130 @@
+$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+
+---- to switch on dp server
+ALTER SYSTEM ALTER CONFIGURATION ('daemon.ini', 'host', 'mo-dd1bb053f') SET ('dpserver','instances') = '1' WITH RECONFIGURE;
+---- to switch on script server
+ALTER SYSTEM ALTER CONFIGURATION ('daemon.ini', 'host', 'mo-dd1bb053f') SET ('scriptserver','instances') = '1' WITH RECONFIGURE;
+
+$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+
+# SOAP Adapter
+- Firstly, need to register SOAPAdapter in Agent.
+- Then, need to configure in Adapter Framework for the Web Service, you need to put the Proxy ;
+TYPE ; http
+PROXY ; proxy.wdf.sap.corp
+PORT ; 8080
+- Need to do above, as cannot set in Remote Data Source.
+- In Remote Data Source, use WSDL file as below, Set System Proxy = Yes (will use proxy as defined on agent), and Treat ... = No.
+- By default, Credentials set to none, but choose Technical User, and leave blank (not used, as web service not used for authentication).
+- Can then browse services in Remote Data Source.
+- In order to use the SOAP Adapter, you need to import a Virtual Function (doesn't use a Virtual Table). First one to do this. Will also be applied to other databases in the future.
+- Will generate the functions in the \Functions folder.
+- In order to call it you need to run it in a SELECT statement ... see code in Word Doc.
+- A current limitaion is that you need to have a hard coded input message/request which is required by the webservice. Will change.
+- Use ; http://www.webservicex.net/medicareSupplier.asmx?WSDL (Gives medicare info based on a City).
+- SQL to call the function is ; 
+SELECT * FROM "???"."SOAP_MediCare_GetSupplierByCity"('<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:web="http://www.webservicex.net/">  <Body>    <web:GetSupplierByCity>      <web:City>Palo Alto</web:City>    </web:GetSupplierByCity>  </Body></soapenv:Envelope>');
+- Need to pass the whole XML input of the message.
+- Can use SOAPUI to create message. 
+
+# Best Record Creation
+("OnlyUnique_Input"."GROUP_ID" is NULL OR "OnlyUnique_Input"."GROUP_MASTER" = 'M')
+
+DROP TABLE HANA_ADDRESSES CASCADE;
+CREATE COLUMN TABLE HANA_ADDRESSES
+(
+"COMPANYNAME" NVARCHAR(200),
+"STREETNUMBER" INTEGER CS_INT,
+"STREET" NVARCHAR(200),
+"LOCALITY" NVARCHAR(200),
+"STATE" NVARCHAR(200),
+ZIP INTEGER CS_INT,
+"COUNTRY" NVARCHAR(200),
+"DATE" DATE,
+"SOURCE" NVARCHAR(200)
+);
+
+TRUNCATE TABLE HANA_ADDRESSES;
+insert into HANA_ADDRESSES 
+values('Business Objects Ltd.',555,'Madison Avenue','New York','NY',10022,'US','20160101','HANA');
+insert into HANA_ADDRESSES 
+values('SAP',95,'Morton Street','New York','NY',10014,'US','20160101','HANA');
+
+SELECT * FROM HANA_ADDRESSES;
+
+-- EXCEL
+'BOBJ',555,'Madison Avenue','New York','New York','USA','1/1/2015','Excel'
+'SAP Global Marketing',95,'Morton Street','New York','NY','USA','1/1/2015','Excel'
+
+# JIT Data Preview 
+- Need to grant GRANT SELECT, EXECUTE ON SCHEMA SHA to _SYS_REPO WITH GRANT OPTION;.
+
+============
+
+# Load Behaviour
+DROP TABLE ADDRESS_SOURCE_TABLE CASCADE;
+CREATE COLUMN TABLE ADDRESS_SOURCE_TABLE
+(
+"ID" INTEGER CS_INT,
+"COMPANYNAME" NVARCHAR(50),
+"STREETNUMBER" INTEGER CS_INT,
+"STREETNAME" NVARCHAR(50),
+"LOCALITY" NVARCHAR(50),
+"STATE" NVARCHAR(10),
+"POSTCODE" INTEGER CS_INT,
+"COUNTRY" NVARCHAR(20),
+PRIMARY KEY ("ID")
+);
+
+TRUNCATE TABLE ADDRESS_SOURCE_TABLE;
+insert into ADDRESS_SOURCE_TABLE 
+values(1,'Business Objects Ltd.',555,'Madison Avenue','New York','NY',10022,'US');
+
+select * from ADDRESS_SOURCE_TABLE;
+
+DROP TABLE ADDRESS_TARGET_TABLE CASCADE;
+CREATE COLUMN TABLE ADDRESS_TARGET_TABLE
+(
+"ID" INTEGER CS_INT,
+"COMPANYNAME" NVARCHAR(50),
+"STREETNUMBER" INTEGER CS_INT,
+"STREETNAME" NVARCHAR(50),
+"LOCALITY" NVARCHAR(50),
+"STATE" NVARCHAR(10),
+"POSTCODE" INTEGER CS_INT,
+"COUNTRY" NVARCHAR(20),
+"OPERATION" VARCHAR(1),
+"LOADDATE" TIMESTAMP,
+PRIMARY KEY ("ID")
+);
+
+TRUNCATE TABLE ADDRESS_TARGET_TABLE;
+insert into ADDRESS_TARGET_TABLE 
+values(1,'Business Objects Ltd.',555,'Madison Avenue','New York','NY',10022,'US','','');
+
+select * from ADDRESS_TARGET_TABLE;
+
+UPDATE ADDRESS_SOURCE_TABLE 
+SET STREETNUMBER = 556 
+WHERE STREETNUMBER = 555;
+select * from ADDRESS_SOURCE_TABLE;
+
+insert into ADDRESS_SOURCE_TABLE 
+values(2,'SAP Global Marketing',95,'Morton Street','New York','NY',10014,'US');
+
+GRANT SELECT, INSERT, UPDATE, DELETE, EXECUTE ON SCHEMA SHA to _SYS_REPO WITH GRANT OPTION;
+
+DROP TABLE COMPANY_ADDRESSES CASCADE;
+CREATE COLUMN TABLE COMPANY_ADDRESSES
+(
+"ID" INTEGER CS_INT,
+"COMPANYNAME" NVARCHAR(50),
+"LATITUDE" FLOAT,
+"LONGITUDE" FLOAT
+);
+
+TRUNCATE TABLE COMPANY_ADDRESSES;
+insert into COMPANY_ADDRESSES 
+values(1,'Acme Limited','40.748441','-73.985664');
+
+select * from COMPANY_ADDRESSES;
