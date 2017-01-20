@@ -1,0 +1,450 @@
+
+--------------------------------------------------------
+-- switch on script and dp servers
+--------------------------------------------------------
+
+ALTER SYSTEM ALTER CONFIGURATION ('daemon.ini', 'host', 'mo-88e87eab9.mo.sap.corp') 
+SET ('dpserver','instances') = '1' WITH RECONFIGURE;
+
+ALTER SYSTEM ALTER CONFIGURATION ('daemon.ini', 'host', 'mo-88e87eab9.mo.sap.corp') 
+SET ('scriptserver','instances') = '1' WITH RECONFIGURE;
+
+ALTER SYSTEM ALTER CONFIGURATION ('scriptserver.ini', 'SYSTEM') 
+SET ('adapter_framework', 'dq_reference_data_path') = 
+'\geodirs' WITH RECONFIGURE;
+
+--------------------------------------------------------
+-- employees table for Loading Data, Data Source/Target
+--------------------------------------------------------
+
+namespace myproj.myhdbmod;
+
+context mycds {
+   entity employees {
+      key EMP_ID : Integer not null;
+      FNAME : String(20);
+      LNAME : String(20);
+      ROLE : String(20);
+   };
+};
+
+DELETE FROM "myproj.myhdbmod::mycds.employees";
+INSERT INTO "myproj.myhdbmod::mycds.employees"
+VALUES(1,'Christine','Jones','Manager');
+INSERT INTO "myproj.myhdbmod::mycds.employees"
+VALUES(2,'Eric','Thomas','Manager');
+INSERT INTO "myproj.myhdbmod::mycds.employees"
+VALUES(3,'Rita','Miller','Director');
+INSERT INTO "myproj.myhdbmod::mycds.employees"
+VALUES(4,'Sachin','Gupta','Director');
+INSERT INTO "myproj.myhdbmod::mycds.employees"
+VALUES(5,'Doreen','Anderson','Project Manager');
+INSERT INTO "myproj.myhdbmod::mycds.employees"
+VALUES(6,'Pierre','Dufour','Manager');
+INSERT INTO "myproj.myhdbmod::mycds.employees"
+VALUES(7,'Cheung','Zhou','Director');
+INSERT INTO "myproj.myhdbmod::mycds.employees"
+VALUES(8,'Henk','den Berg','Director');
+INSERT INTO "myproj.myhdbmod::mycds.employees"
+VALUES(9,'Sarah','Jackson','Senior Manager');
+INSERT INTO "myproj.myhdbmod::mycds.employees"
+VALUES(10,'Alex','Smith','Executive Manager');
+
+------------------------------------------------------
+-- more_employees table for Union demo
+------------------------------------------------------
+
+   entity more_employees {
+      key EMP_ID : Integer not null;
+      FNAME : String(20);
+      LNAME : String(20);
+      ROLE : String(20);
+   };
+
+DELETE FROM "myproj.myhdbmod::mycds.more_employees";
+INSERT INTO "myproj.myhdbmod::mycds.more_employees"
+VALUES(11,'Javier','Hernandez','Manager');
+INSERT INTO "myproj.myhdbmod::mycds.more_employees"
+VALUES(12,'Angela','Sanders','Manager');
+
+------------------------------------------------------
+-- script for Cleanse demo
+------------------------------------------------------
+
+UPDATE "myproj.myhdbmod::mycds.employees"
+SET FNAME = 'Alexandria'
+WHERE EMP_ID = 10;
+
+SELECT * FROM "myproj.myhdbmod::mycds.employees";
+
+------------------------------------------------------
+-- script for Case demo
+------------------------------------------------------
+
+INSERT INTO "myproj.myhdbmod::mycds.more_employees"
+VALUES(13,'Angel','Sosa','Operations Manager');
+
+SELECT * FROM "myproj.myhdbmod::mycds.more_employees";
+
+"STD_PERSON_GENDER" in ('FEMALE_STRONG','FEMALE_WEAK','MALE_STRONG','MALE_WEAK');
+
+------------------------------------------------------
+-- script for Projection demo
+------------------------------------------------------
+
+REPLACE(REPLACE("STD_PERSON_GENDER", '_STRONG', ''), '_WEAK', '')
+
+------------------------------------------------------
+-- facts table for Join demo
+------------------------------------------------------
+
+   entity facts {
+      EMP_ID : Integer not null;
+      TEAM_ID : Integer;
+      DATE : LocalDate;
+      REVENUE_EARNED : Integer;
+   };
+
+DELETE FROM "myproj.myhdbmod::mycds.facts";
+INSERT INTO "myproj.myhdbmod::mycds.facts"
+VALUES (1,1,'2016-10-01',829);
+INSERT INTO "myproj.myhdbmod::mycds.facts"
+VALUES (2,2,'2016-10-01',142);
+INSERT INTO "myproj.myhdbmod::mycds.facts"
+VALUES (3,3,'2016-10-01',942);
+INSERT INTO "myproj.myhdbmod::mycds.facts"
+VALUES (4,4,'2016-10-01',324);
+INSERT INTO "myproj.myhdbmod::mycds.facts"
+VALUES (5,5,'2016-10-01',934);
+INSERT INTO "myproj.myhdbmod::mycds.facts"
+VALUES (2,6,'2015-10-01',643);
+INSERT INTO "myproj.myhdbmod::mycds.facts"
+VALUES (3,7,'2015-10-01',245);
+INSERT INTO "myproj.myhdbmod::mycds.facts"
+VALUES (3,8,'2014-10-01',945);
+INSERT INTO "myproj.myhdbmod::mycds.facts"
+VALUES (4,9,'2015-10-01',878);
+INSERT INTO "myproj.myhdbmod::mycds.facts"
+VALUES (4,10,'2014-10-01',138);
+INSERT INTO "myproj.myhdbmod::mycds.facts"
+VALUES (1,1,'2016-11-01',827);
+INSERT INTO "myproj.myhdbmod::mycds.facts"
+VALUES (2,2,'2016-11-01',765);
+INSERT INTO "myproj.myhdbmod::mycds.facts"
+VALUES (3,3,'2016-11-01',178);
+INSERT INTO "myproj.myhdbmod::mycds.facts"
+VALUES (4,4,'2016-11-01',382);
+INSERT INTO "myproj.myhdbmod::mycds.facts"
+VALUES (5,5,'2016-11-01',145);
+INSERT INTO "myproj.myhdbmod::mycds.facts"
+VALUES (6,6,'2016-11-01',612);
+INSERT INTO "myproj.myhdbmod::mycds.facts"
+VALUES (7,7,'2016-11-01',123);
+INSERT INTO "myproj.myhdbmod::mycds.facts"
+VALUES (8,8,'2016-11-01',853);
+INSERT INTO "myproj.myhdbmod::mycds.facts"
+VALUES (9,9,'2016-11-01',824);
+INSERT INTO "myproj.myhdbmod::mycds.facts"
+VALUES (10,10,'2016-11-01',928);
+INSERT INTO "myproj.myhdbmod::mycds.facts"
+VALUES (11,10,'2016-11-01',145);
+INSERT INTO "myproj.myhdbmod::mycds.facts"
+VALUES (12,10,'2016-11-01',134);
+
+------------------------------------------------------
+-- script for sequence demo
+------------------------------------------------------
+
+-- ccreate hdbflowgraph, and call it scd_seq.hdbflowgraph
+
+   entity employees_history {
+      SURR_ID : Integer not null;
+      EMP_ID : Integer not null;
+      FNAME : String(20);
+      LNAME : String(20);
+      ROLE : String(20);
+   };
+   
+-- connect Data Source to Projection 
+--- Make SURR_ID field, move to top of list, as INT and PK.
+--- Map to EMP_ID (as well as EMP_ID)
+-- for Data Target, use HANA object
+--- as no PK in target, can run task again and again, and will 
+--- load batches of 10 IDs in BOTH SURR_ID and EMP_ID at a time.
+
+-- create the sequence ;
+surrogate.hdbsequence
+
+SEQUENCE "myproj.myhdbmod::surrogate"
+RESET BY SELECT IFNULL(MAX(SURR_ID), 0) + 1 
+FROM "myproj.myhdbmod::mycds.employees_history"
+
+-- run SELECT IFNULL.. from above to show how it works.
+-- run SELECT below to show values.
+SELECT "myproj.myhdbmod::surrogate".NEXTVAL FROM DUMMY;
+
+-- run the following to clean out system ;
+DELETE FROM "myproj.myhdbmod::mycds.employees_history";
+
+-- Add SURR_ID and Key Sequence to Data Target
+--- Execute Task a few times. 
+--- See that SURR is working, and now could put a PK
+---- on the SURR_ID field even though EMP_ID repeats.
+
+------------------------------------------------------
+-- script for table comparison demo
+------------------------------------------------------
+
+-- copy scd_seq.hdbflowgraph, and call it scd_tc.hdbflowgraph
+
+DELETE FROM "myproj.myhdbmod::mycds.employees_history";
+SELECT * FROM "myproj.myhdbmod::mycds.employees_history";
+
+   entity employees_history {
+      key SURR_ID : Integer not null;
+      key EMP_ID : Integer not null;
+      FNAME : String(20);
+      LNAME : String(20);
+      ROLE : String(20);
+   };
+
+-- show that upsert / truncate can fix issue, but inefficient.
+-- in TC, on specify "Table" in Source, and EMPID, F&LNAME in Attributes.
+-- in Target, change "Writer Type" to "insert". 
+-- show in console that job doesn't fail when ran.
+
+UPDATE "myproj.myhdbmod::mycds.employees"
+SET LNAME = 'Cantona'
+WHERE EMP_ID = 1;
+
+UPDATE "myproj.myhdbmod::mycds.employees"
+SET ROLE = 'Sales Executive'
+WHERE EMP_ID = 2;
+
+UPDATE "myproj.myhdbmod::mycds.employees"
+SET LNAME = 'Smith'
+WHERE EMP_ID = 2;
+
+------------------------------------------------------
+-- script for change type/time attribute demo
+------------------------------------------------------
+
+DELETE FROM "myproj.myhdbmod::mycds.employees_history";
+SELECT * FROM "myproj.myhdbmod::mycds.employees_history";
+
+   entity employees_history {
+      key SURR_ID : Integer not null;
+      key EMP_ID : Integer not null;
+      FNAME : String(20);
+      LNAME : String(20);
+      ROLE : String(20);
+      CHANGE_TYPE : String(1); 
+      CHANGE_TIME : UTCTimestamp;   
+   };
+
+Add "Projection", and add TYPE as varchar(1) and TIME as timestamp.
+Add '' for each mapping in the Projection.
+Update TC so columns are passed through and tracking deleted rows.
+Update Target with new employee_history table. Map columns.
+Add Type and Time as options in Data Target.
+
+UPDATE "myproj.myhdbmod::mycds.employees"
+SET LNAME = 'Bailly'
+WHERE EMP_ID = 1;
+
+DELETE FROM "myproj.myhdbmod::mycds.employees"
+WHERE EMP_ID = 20;
+
+DELETE FROM "myproj.myhdbmod::mycds.employees_history"
+WHERE EMP_ID = 20;
+
+INSERT INTO "myproj.myhdbmod::mycds.employees"
+VALUES(20,'Anthony','Rashford','HR Manager');
+
+SELECT * FROM "myproj.myhdbmod::mycds.employees_history";
+
+------------------------------------------------------
+-- script for history preserving demo
+------------------------------------------------------
+
+-- copy scd_tc.hdbflowgraph, and call it scd_hp.hdbflowgraph
+
+DELETE FROM "myproj.myhdbmod::mycds.employees"
+WHERE EMP_ID = 20;
+DELETE FROM "myproj.myhdbmod::mycds.employees_history";
+SELECT * FROM "myproj.myhdbmod::mycds.employees";
+SELECT * FROM "myproj.myhdbmod::mycds.employees_history";
+
+   entity employees_history {
+      key SURR_ID     : Integer not null;
+      key EMP_ID      : Integer not null;
+          FNAME       : String(20);
+          LNAME       : String(20);
+          ROLE        : String(20);
+          CHANGE_TYPE : String(1); 
+          CHANGE_TIME : UTCTimestamp;  
+          CURRENTFLAG : String(1);
+          VALIDFROM   : LocalDate;
+          VALIDTO     : LocalDate; 
+   };
+
+In "Projection", and add ;
+- FLAG as varchar(1) with '' in Mapping.
+- FROM as Date with CURRENT_DATE in Mapping.
+- TO as Date with CURRENT_DATE in Mapping.
+Update TC so columns are passed through.
+Add HP, and configure HR as expected.
+Set New Record to 2017.12.31.
+Set = 1
+Reset = 0
+Add compare columns.
+Update Target with new employee_history table. Map columns.
+Leave "Writer Type" as Insert.
+
+UPDATE "myproj.myhdbmod::mycds.employees"
+SET LNAME = 'De Gea'
+WHERE EMP_ID = 1;
+
+INSERT INTO "myproj.myhdbmod::mycds.employees"
+VALUES(20,'Anthony','Rashford','HR Manager');
+
+------------------------------------------------------
+-- script for map operation demo
+------------------------------------------------------
+
+-- copy scd_tc.hdbflowgraph, and call it scd_mo.hdbflowgraph
+
+-- sql 1 :
+DELETE FROM "myproj.myhdbmod::mycds.employees" 
+WHERE EMP_ID = 20;
+
+UPDATE "myproj.myhdbmod::mycds.employees" 
+SET LNAME = 'Darmian' WHERE EMP_ID = 1;
+
+DELETE FROM "myproj.myhdbmod::mycds.employees_history";
+
+SELECT * FROM "myproj.myhdbmod::mycds.employees" order by 1,2;
+
+SELECT * FROM "myproj.myhdbmod::mycds.employees_history" order by 1,2;
+
+-- sql 2 :
+UPDATE "myproj.myhdbmod::mycds.employees" 
+SET LNAME = 'Carrick' WHERE EMP_ID = 1;
+
+INSERT INTO "myproj.myhdbmod::mycds.employees"
+VALUES(20,'Anthony','Rashford','HR Manager');
+
+DELETE FROM "myproj.myhdbmod::mycds.employees"
+WHERE EMP_ID = 20;
+
+wt=i
+n=n
+i=i
+u=u
+d=d
+-- above means tracking insert, updates and deletes (same as HP)
+..
+wt=i
+add column 'CHANGE_TYPE'
+n=n (mapped as '')
+i=i (mapped as 'i')
+u=u (mapped as 'u')
+d=d (mapped as 'd')
+-- above means tracking all, but lower casing output in specific column.
+
+------------------------------------------------------
+-- address table for Geocode & Lookup demos
+------------------------------------------------------
+
+    entity team {
+        team_ID             : Integer not null;
+        team                : String(20);
+        streetnumber        : Integer;
+        streetname          : String(20);
+        locality            : String(20);
+        state               : String(2);
+        zipcode             : String(5);
+        country             : String(2);
+  };
+
+DELETE FROM "myproj.myhdbmod::mycds.team";
+INSERT INTO "myproj.myhdbmod::mycds.team" 
+VALUES (1,'Services',10,'Hudson Yards','New York','NY',10001,'US');
+INSERT INTO "myproj.myhdbmod::mycds.team" 
+VALUES (2,'Marketing',555,'Madison Avenue','New York','NY',10012,'US');
+INSERT INTO "myproj.myhdbmod::mycds.team" 
+VALUES (3,'Human Resources',3999,'West Chester Pike','Newtown Square','PA',19073,'US');
+INSERT INTO "myproj.myhdbmod::mycds.team" 
+VALUES (4,'Purchasing',3500,'Lenox Road','Atlanta','GA',30326,'US');
+INSERT INTO "myproj.myhdbmod::mycds.team" 
+VALUES (5,'Financial',53,'Blake Street','Boston','MA',02109,'US');
+INSERT INTO "myproj.myhdbmod::mycds.team" 
+VALUES (6,'IT',111,'N. Canal Street','Chicago','IL',60606,'US');
+INSERT INTO "myproj.myhdbmod::mycds.team" 
+VALUES (7,'Quality Assurance',312,'Walnut Street','Cincinnati','OH',45202,'US');
+INSERT INTO "myproj.myhdbmod::mycds.team" 
+VALUES (8,'Customer Service',2601,'Westheimer Road','Houston','TX',77098,'US');
+INSERT INTO "myproj.myhdbmod::mycds.team" 
+VALUES (9,'Services',332,'Front Street South','LaCrosse','WI',54601,'US');
+INSERT INTO "myproj.myhdbmod::mycds.team" 
+VALUES (10,'Operations',1901,'Avenue of the Stars','Los Angeles','CA',90067,'US');
+
+SELECT * FROM "myproj.myhdbmod::mycds.team";
+
+------------------------------------------------------
+-- script for procedure demo
+------------------------------------------------------
+
+emp_input_type.hdbtabletype
+
+TYPE "myproj.myhdbmod::emp_input_type" 
+AS TABLE 
+(
+EMP_ID int,
+FNAME varchar(20),
+LNAME varchar(20)
+)
+
+-- hana way ;
+-- create type emp_input_type as table 
+-- (EMP_ID int,FNAME varchar(20),FNAME varchar(20));
+
+emp_output_type.hdbtabletype
+
+TYPE "myproj.myhdbmod::emp_output_type" 
+AS TABLE 
+(
+EMP_ID int,
+FNAME varchar(20),
+LNAME varchar(20)
+)
+
+-- hana way ;
+-- create type emp_output_type as table 
+-- (EMP_ID int,FNAME varchar(20),FNAME varchar(20));
+
+myproc.hdbprocedure
+
+PROCEDURE "myproj.myhdbmod::myproc" 
+(out o1 "myproj.myhdbmod::emp_output_type")
+   LANGUAGE SQLSCRIPT
+   READS SQL DATA AS
+BEGIN
+   o1 = select EMP_ID, FNAME, LNAME 
+   from "myproj.myhdbmod::mycds.employees";
+END;
+
+CALL "QPFRMTLKJQIIETYF_MYPROJ_HDI_CONTAINER"."myproj.myhdbmod::myproc"(O1 => ?);
+
+myproc_input.hdbprocedure
+
+PROCEDURE "myproj.myhdbmod::myproc_input" 
+(in i1 "myproj.myhdbmod::emp_input_type", out o1 "myproj.myhdbmod::emp_output_type")
+   LANGUAGE SQLSCRIPT
+   READS SQL DATA AS
+BEGIN
+   i1 = select EMP_ID, FNAME, LNAME from :i1;
+   o1 = select EMP_ID, FNAME, LNAME from :i1;
+END;
+
+CALL "QPFRMTLKJQIIETYF_MYPROJ_HDI_CONTAINER"."myproj.myhdbmod::myproc_input"(I1 => "myproj.myhdbmod::mycds.employees",O1 => ?);
