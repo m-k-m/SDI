@@ -392,7 +392,7 @@ VALUES (10,'Operations',1901,'Avenue of the Stars','Los Angeles','CA',90067,'US'
 SELECT * FROM "myproj.myhdbmod::mycds.team";
 
 ------------------------------------------------------
--- script for procedure demo
+-- script for table types/procedure demo
 ------------------------------------------------------
 
 emp_input_type.hdbtabletype
@@ -406,8 +406,9 @@ LNAME varchar(20)
 )
 
 -- hana way ;
--- create type emp_input_type as table 
--- (EMP_ID int,FNAME varchar(20),FNAME varchar(20));
+create type emp_input_type_trad as table 
+(EMP_ID int,FNAME varchar(20),LNAME varchar(20));
+drop type emp_output_type_trad;
 
 emp_output_type.hdbtabletype
 
@@ -420,8 +421,9 @@ LNAME varchar(20)
 )
 
 -- hana way ;
--- create type emp_output_type as table 
--- (EMP_ID int,FNAME varchar(20),FNAME varchar(20));
+create type emp_output_type_trad as table 
+(EMP_ID int,FNAME varchar(20),LNAME varchar(20));
+drop type emp_output_type_trad;
 
 myproc.hdbprocedure
 
