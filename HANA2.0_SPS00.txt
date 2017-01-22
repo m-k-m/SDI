@@ -408,7 +408,7 @@ LNAME varchar(20)
 -- hana way ;
 create type emp_input_type_trad as table 
 (EMP_ID int,FNAME varchar(20),LNAME varchar(20));
-drop type emp_output_type_trad;
+drop type emp_input_type_trad;
 
 emp_output_type.hdbtabletype
 
@@ -419,11 +419,6 @@ EMP_ID int,
 FNAME varchar(20),
 LNAME varchar(20)
 )
-
--- hana way ;
-create type emp_output_type_trad as table 
-(EMP_ID int,FNAME varchar(20),LNAME varchar(20));
-drop type emp_output_type_trad;
 
 myproc.hdbprocedure
 
