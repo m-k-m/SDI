@@ -1,0 +1,76 @@
+// This operator is needed to keep compatibility to the old datagenerator var counter = 0;
+getRandomInt = function(min, max) {
+min = Math.ceil(min);
+max = Math.floor(max);
+return Math.floor(Math.random() * (max - min + 1)) +
+inclusive and the minimum is inclusive
+}
+getDevice = function() {
+    switch (getRandomInt(1,4)) {
+case 1:
+return "005056912EC51ED7958030A79500C7CA";
+case 2:
+return "005056912EC51ED7958030A79501C7CA";
+case 3:
+return "005056912EC51ED7958030A7950D27CA";
+default:
+return "005056912EC51ED7958030A7951D27CA";
+} }
+getEvent = function() {
+    switch (getRandomInt(1,2)) {
+        case 1:
+            return "temperature";
+        default:
+            return "humidity";
+} }
+getTime = function() {
+// return "2016-01-01T11:31:41.7910581";
+    var currentTime = new Date();
+    var year = currentTime.getFullYear();
+    var month = currentTime.getMonth();
+    if (month < 10) {
+        month = "0" + month;
+    }
+    var date = currentTime.getDate();
+    if (date < 10) {
+        date = "0" + date;
+    }
+    var hours = currentTime.getHours();
+    if (hours < 10) {
+        hours = "0" + hours;
+    }
+var minutes = currentTime.getMinutes(); if (minutes < 10) {
+        minutes = "0" + minutes;
+    }
+var seconds = currentTime.getSeconds(); if (seconds < 10) {
+        seconds = "0" + seconds;
+    }
+var milliseconds = currentTime.getMilliseconds(); if (milliseconds < 10) {
+        milliseconds = "00" + milliseconds;
+    }
+    else if (milliseconds < 100) {
+      milliseconds = "0" + milliseconds;
+    }
+vartime=year+"-"+ month+"-"+date+"T"+hours+":"+minutes+":" + seconds + "." + milliseconds + "0000";
+    return time;
+}
+getValue = function(event) {
+    switch (event) {
+case "temperature":
+return getRandomInt(15,25).toFixed(1);
+default:
+return getRandomInt(63,72).toFixed(1);
+} }
+generateData = function() {
+    // DEVICE;EVENT;TIME;VALUE
+// Example: 005056912EC51ED7958030A7950A07CA;temperature;2016-01- 01T11:31:41.7910581;24.0
+// ABAP types: CHAR32, CHAR32, CHAR28, DEC(4,1)
+    var event = getEvent();
+var data = getDevice() + "," + event + "," + getTime() + "," + getValue(event) + "\r\n";
+    return data;
+};
+$.addTimer("15s",doTick);
+function doTick(ctx) {
+    $.output(generateData());
+    counter++;
+}
