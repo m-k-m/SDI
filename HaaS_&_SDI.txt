@@ -1,0 +1,88 @@
+sdi_haas.txt
+
+// Orcl Update 
+update T001W 
+set STRAS = 'E Street'
+where WERKS = '0001';
+commit;
+select * from T001W;
+
+// grant-service
+{
+	"driver": "com.sap.db.jdbc.Driver",
+	"tags": [
+		"hana"
+	],
+	"user": "SYSTEM",
+	"password": "?????"
+}
+
+// mta.yaml
+ID: aksdemo
+_schema-version: '2.1'
+version: 0.0.1
+
+modules:
+ - name: hdb
+   type: hdb
+   path: hdb
+   requires:
+    - name: hdi_hdb
+      properties:
+        TARGET_CONTAINER: ~{hdi-container-name}
+    - name: grant-service
+
+ 
+
+resources:
+ - name: hdi_hdb
+   parameters:
+      config:
+         schema: AKSDEMO_HDB
+   properties:
+      hdi-container-name: ${service-name}
+   type: com.sap.xs.hdi-container
+   
+ - name: grant-service
+   type: org.cloudfoundry.existing-service
+   parameters:
+     service-name: grant-service
+
+
+// grants.hdbgrants
+{
+   "grant-service":{
+      "object_owner":{
+         "global_object_privileges":[
+            {
+               "name":"Orcl",
+               "type":"REMOTE SOURCE",
+               "privileges":[
+                  "CREATE VIRTUAL TABLE",
+                  "CREATE VIRTUAL FUNCTION",
+                  "CREATE REMOTE SUBSCRIPTION",
+                  "PROCESS REMOTE SUBSCRIPTION EXCEPTION",
+                  "ALTER",
+                  "DROP"
+               ]
+            }
+         ]
+      },
+      "application_user":{
+         "global_object_privileges":[
+            {
+               "name":"Orcl",
+               "type":"REMOTE SOURCE",
+               "privileges":[
+                  "CREATE VIRTUAL TABLE",
+                  "CREATE VIRTUAL FUNCTION",
+                  "CREATE REMOTE SUBSCRIPTION",
+                  "PROCESS REMOTE SUBSCRIPTION EXCEPTION",
+                  "ALTER",
+                  "DROP"
+               ]
+            }
+         ]
+      }
+   }
+}
