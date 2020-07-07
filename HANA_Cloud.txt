@@ -1,0 +1,157 @@
+# Create Devuser
+CREATE USER devuser PASSWORD Password1 NO FORCE_FIRST_PASSWORD_CHANGE SET USERGROUP DEFAULT;
+GRANT CATALOG READ TO devuser WITH ADMIN OPTION;
+GRANT CREATE SCHEMA TO devuser WITH ADMIN OPTION;
+GRANT CREATE REMOTE SOURCE TO devuser WITH ADMIN OPTION;
+GRANT ADAPTER ADMIN TO devuser WITH ADMIN OPTION;
+GRANT AGENT ADMIN TO devuser WITH ADMIN OPTION;
+
+# System Views
+SELECT * FROM "SYS"."ADAPTERS";
+SELECT * FROM "SYS"."AGENTS";
+
+# Virtual Objects
+SELECT *
+FROM "DEVUSER"."REMOTE_SALES"
+order by 1;
+set schema DEVUSER;
+update SALES set AMOUNT = 99 where ID = 1;
+select * from SALES order by 1;
+set schema DEVUSER;
+update REMOTE_SALES set AMOUNT = 11 where ID = 1;
+
+# create ups in scp cockpit called "grant-service"
+{
+  "user": "DEVUSER",
+  "password": "Password1",
+  "schema": "DEVUSER",
+  "tags": [
+    "hana"
+  ]
+}
+
+# modify mta.yaml
+ID: myproj
+_schema-version: '2.1'
+version: 0.0.1
+
+modules:
+ - name: db
+   type: hdb
+   path: db
+   requires:
+    - name: hdi_db
+      properties:
+        TARGET_CONTAINER: '~{hdi-container-name}'
+    - name: grant-service
+   
+resources:
+ - name: hdi_db
+   properties:
+      hdi-container-name: ${service-name}
+   type: com.sap.xs.hdi-container
+
+ - name: grant-service
+   type: org.cloudfoundry.existing-service
+   parameters:
+      service-name: grant-service
+
+# create "grants.hdbgrants"
+{
+   "grant-service":{
+      "object_owner":{
+         "global_object_privileges":[
+            {
+               "name":"My_Remote_HANA",
+               "type":"REMOTE SOURCE",
+               "privileges":[
+                  "CREATE VIRTUAL TABLE",
+                  "CREATE VIRTUAL FUNCTION",
+                  "CREATE REMOTE SUBSCRIPTION",
+                  "PROCESS REMOTE SUBSCRIPTION EXCEPTION",
+                  "ALTER",
+                  "DROP"
+               ]
+            }
+         ]
+      },
+      "application_user":{
+         "global_object_privileges":[
+            {
+               "name":"My_Remote_HANA",
+               "type":"REMOTE SOURCE",
+               "privileges":[
+                  "CREATE VIRTUAL TABLE",
+                  "CREATE VIRTUAL FUNCTION",
+                  "CREATE REMOTE SUBSCRIPTION",
+                  "PROCESS REMOTE SUBSCRIPTION EXCEPTION",
+                  "ALTER",
+                  "DROP"
+               ]
+            }
+         ]
+      }
+   }
+}
+
+# Virtual Tables
+insert into "MYHDB_1"."myproj.myhdbmod::MyVT" values (16, 'Asia', 'Sri Lanka', 777);
+select * from "MYHDB_1"."myproj.myhdbmod::MyVT" order by 1;
+delete from "MYHDB_1"."myproj.myhdbmod::MyVT" where ID = 16;
+select * from "MYHDB_1"."myproj.myhdbmod::MyVT" order by 1;
+
+# Flowgraphs
+set schema MYDATA;
+update SALES set AMOUNT = 99 where ID = 1;
+select * from SALES order by 1;
+
+# undeploy.json
+[
+    "src/MyFlowgraph.hdbflowgraph"
+]
+
+# Adding Data when using Real-time Replication
+set schema MYDATA;
+insert into SALES values (16, 'Asia', 'Sri Lanka', 777);
+select * from SALES order by 1;
+
+set schema MYDATA;
+delete from SALES where ID = 16;
+select * from SALES order by 1;
+
+==================
+== SETUP SCRIPT ==
+==================
+
+DROP SCHEMA MYDATA CASCADE;
+
+CREATE SCHEMA MYDATA;
+ 
+SET SCHEMA MYDATA;
+ 
+CREATE COLUMN TABLE SALES (
+    ID INTEGER NOT NULL,
+    REGION NVARCHAR(100),
+    COUNTRY NVARCHAR(100),
+    AMOUNT INTEGER,
+    PRIMARY KEY (ID)
+);
+ 
+INSERT INTO SALES VALUES (1, 'Europe', 'France', 123);
+INSERT INTO SALES VALUES (2, 'Europe', 'UK', 323);
+INSERT INTO SALES VALUES (3, 'Europe', 'Germany', 413);
+INSERT INTO SALES VALUES (4, 'Europe', 'Italy', 143);
+INSERT INTO SALES VALUES (5, 'Europe', 'Finland', 521);
+INSERT INTO SALES VALUES (6, 'Europe', 'Ireland', 253);
+INSERT INTO SALES VALUES (7, 'Europe', 'Spain', 273);
+INSERT INTO SALES VALUES (8, 'Europe', 'Portugal', 190);
+INSERT INTO SALES VALUES (9, 'North America', 'USA', 763);
+INSERT INTO SALES VALUES (10, 'North America', 'Mexico', 465);
+INSERT INTO SALES VALUES (11, 'North America', 'Canada', 349);
+INSERT INTO SALES VALUES (12, 'Asia', 'Japan', 732);
+INSERT INTO SALES VALUES (13, 'Asia', 'Malaysia', 233);
+INSERT INTO SALES VALUES (14, 'Asia', 'China', 821);
+INSERT INTO SALES VALUES (15, 'Asia', 'India', 692);
+ 
+SELECT * FROM SALES;
+
